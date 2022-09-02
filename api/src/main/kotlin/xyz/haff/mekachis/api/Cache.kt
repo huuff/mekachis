@@ -4,8 +4,10 @@ import kotlinx.coroutines.runBlocking
 
 interface Cache<Key, Value> {
 
-    suspend fun getOrLoad(key: Key, loadingFunction: (Key) -> Value): CacheResult<Value>
-    fun syncGetOrLoad(key: Key, loadingFunction: (Key) -> Value): CacheResult<Value> = runBlocking {
-        getOrLoad(key, loadingFunction)
-    }
+    suspend fun containsKey(key: Key): Boolean
+    suspend fun get(key: Key): Value?
+    suspend fun put(key: Key, value: Value)
+    suspend fun remove(key: Key)
+    suspend fun clear()
+    suspend fun getOrLoad(key: Key, loadingFunction: suspend (Key) -> Value): CacheResult<Value>
 }
