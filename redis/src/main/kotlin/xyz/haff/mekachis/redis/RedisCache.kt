@@ -4,6 +4,7 @@ import xyz.haff.mekachis.api.CacheResult
 import xyz.haff.mekachis.api.Cache
 import xyz.haff.siths.client.SithsDSL
 import xyz.haff.siths.protocol.SithsConnectionPool
+import xyz.haff.siths.scripts.RedisScripts
 import kotlin.time.Duration
 import java.util.zip.CRC32
 
@@ -43,8 +44,7 @@ class RedisCache<Key, Value>(
 
     override suspend fun remove(key: Key) { redis.del(keyName(key)) }
 
-    // TODO: Some delete by pattern script in Siths
     override suspend fun clear() {
-        TODO("Not yet implemented")
+        redis.runScript(RedisScripts.PDEL, args = listOf("$name:*"))
     }
 }
