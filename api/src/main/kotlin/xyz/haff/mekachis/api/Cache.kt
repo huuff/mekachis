@@ -1,7 +1,5 @@
 package xyz.haff.mekachis.api
 
-import kotlinx.coroutines.runBlocking
-
 interface Cache<Key, Value> {
 
     suspend fun containsKey(key: Key): Boolean

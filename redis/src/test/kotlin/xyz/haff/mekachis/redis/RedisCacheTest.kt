@@ -7,25 +7,26 @@ import io.kotest.extensions.testcontainers.TestContainerExtension
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
-import xyz.haff.siths.protocol.RedisConnection
-import xyz.haff.siths.protocol.SithsConnectionPool
+import xyz.haff.mekachis.redisClientFromContainer
+import xyz.haff.mekachis.shortLivedStringCacheFromContainer
+import xyz.haff.siths.client.api.SithsImmediateClient
 import java.util.*
-import kotlin.time.Duration.Companion.seconds
 
 class RedisCacheTest : FunSpec({
     val container = install(TestContainerExtension("redis:7.0.4-alpine", LifecycleMode.Root)) {
         withExposedPorts(6379)
     }
 
-    test("value is cached") {
+    lateinit var redis: SithsImmediateClient
+
+    beforeAny {
+        redis = redisClientFromContainer(container)
+    }
+
+
+    test("getOrLoad") {
         // ARRANGE
-        val cache = RedisCache<String, String>(
-            lockTimeout = 10.seconds,
-            keyTtl = 10.seconds,
-            connectionPool = SithsConnectionPool(RedisConnection(host = container.host, port = container.firstMappedPort)),
-            serialize = { it },
-            deserialize = { it }
-        )
+        val cache = shortLivedStringCacheFromContainer(container)
         val loadingFunction = spyk( { UUID.randomUUID().toString() })
 
         // ACT
@@ -39,6 +40,32 @@ class RedisCacheTest : FunSpec({
         secondIsHit shouldBe true
         firstResult shouldBe secondResult
         firstKeyHash shouldBe secondKeyHash
+    }
+
+    test("get and put") {
+        // ARRANGE
+        val cache = shortLivedStringCacheFromContainer(container)
+
+        // ACT
+        cache.put("key", "value")
+
+        // ASSERT
+        cache.get("key") shouldBe "value"
+    }
+
+    test("remove") {
+        // ARRANGE
+        val cache = shortLivedStringCacheFromContainer(container)
+        cache.put("key", "value")
+
+        // SANITY CHECK
+        cache.containsKey("key") shouldBe true
+
+        // ACT
+        cache.remove("key")
+
+        // ASSERT
+        cache.containsKey("key") shouldBe false
     }
 
 })
