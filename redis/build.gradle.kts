@@ -9,7 +9,7 @@ val kotestVersion = "5.4.1"
 dependencies {
     api(project(":api"))
     implementation(kotlin("stdlib"))
-    implementation("xyz.haff:siths:0.11.4")
+    implementation("xyz.haff:siths:0.12.2")
 
     testImplementation(kotlin("test"))
     testImplementation("org.testcontainers:testcontainers:1.17.3")
